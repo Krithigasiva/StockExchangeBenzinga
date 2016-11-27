@@ -1,0 +1,94 @@
+.parameterLabel{width:15px}
+
+.dropdown-checkbox{margin-left:10px;}
+
+.datepicker{font-size:11px;}
+
+.dropdowncheck{width:175px; }
+
+/*.vtop{
+    display: inline-block;
+    vertical-align: top;
+    float: none;
+}*/
+
+.checklistsearchtext{font-size:11px; height:25px; width:100px;}
+
+.parameterSelect{padding-right:50px;}
+
+.filler{width:10px;}
+
+.navbar-right{margin-right:0px !important}
+
+.selectedParametersContainer{background-color:ghostwhite; border:1px solid gainsboro; width:100% !important}
+
+.pagination{margin-bottom:0px !important}
+
+nav {margin-bottom:0 !important}
+ 
+.vScroll{overflow-x: scroll;}
+
+.GoToPageTextBox{width:30px; font-size:x-small;  margin-left:5px; vertical-align:top; margin-top:25px}
+.GoToText{vertical-align:top; margin-top:28px; display:inline-block;}
+.filterNameText{width:100px;}
+.removeParameterButton {color:red;}
+.logicalOperator{font-weight:bold;}
+
+.collapseParameters{border-bottom:1px solid gainsboro;}
+
+.parameterCollapsePanel{background-color:ghostwhite;}
+
+.parameterCollapseHeader{padding:2px !important}
+
+.btn-group button{margin:0 !important; }
+
+.btn-circle {
+  width: 30px;
+  height: 30px;
+  text-align: center;
+  padding: 6px 0;
+  font-size: 12px;
+  line-height: 1.42;
+  border-radius: 15px;
+}
+
+.columnChooser{vertical-align:bottom; padding:0px; margin-top:20px}
+
+
+
+input.search-query {
+    padding-right:26px;
+}
+form.form-search {
+    position: relative;
+}
+form.form-search:before {
+    display: block;
+    width: 10px;
+    height: 10px;
+    content: "\e003";
+    font-family: 'Glyphicons Halflings';
+    background-position: -48px 0;
+    position: absolute;
+    top:2px;
+    left:80px;
+    opacity: .5;
+    z-index: 1000;
+}
+
+/* .ExportCaret
+{
+	width:5px !important;
+	padding-left: 0 !important;
+	padding-right: 0 !important;
+	margin: 0 !important;
+} */
+
+.exportbutton{padding-right:5px !important;}
+.scheduleItems.list-group-item.active{background-color:cornsilk !important;}
+
+.scheduleDateTime{width:150px !important;}
+.scheduleDateTimeWithCheck{width:112px !important;}
+.scheduleRadioDays{width:30px;}
+.exportScheduleList{width:350px !important}
+.dropdownlibutton{color:black !important;}

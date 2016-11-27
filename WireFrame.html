@@ -1,0 +1,1338 @@
+<!DOCTYPE html>
+<!-- saved from url=(0024)http://rhwapp580d:8000/# -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><title>Self Service</title>
+    
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+<link rel="stylesheet" href="./WireFrame_files/selfservice.css">
+<link rel="stylesheet" href="./WireFrame_files/bootstrap-datetimepicker.min.css">
+<link rel="stylesheet" href="./WireFrame_files/bootstrap.min.css">
+<script src="./WireFrame_files/jquery-1.11.3.min.js"></script>
+<script src="./WireFrame_files/bootstrap.min.js"></script>
+<script type="text/javascript" src="./WireFrame_files/moment.min.js"></script>
+<script type="text/javascript" src="./WireFrame_files/bootstrap-datetimepicker.min.js"></script>
+
+
+<script>
+$(document).ready(function(){
+
+    $('[data-toggle="tooltip"]').tooltip(); 
+	$('[data-toggle="popover"]').popover();
+
+	});
+</script>
+	
+ 
+ <script language="javascript">
+ 
+	//this function needs to be wired into configuration data
+	function populateParameters()
+	{
+
+		for(paramID = 1; paramID<=30; paramID++)
+		{
+			paramText = "";
+			switch(paramID)
+			{
+				case 1:
+					paramText = "HospitalID";
+					break;
+				case 2:
+					paramText = "StartDate";
+					break;
+				case 3:
+					paramText = "EndDate";
+					break;	
+				case 4:
+					paramText = "PhysicianID";
+					break;
+				default:
+					paramText = "DateSelector" + paramID;
+			}
+			
+			//currently pre-pending 'p' onto id to specify parameter.  Can be removed, if wanted/needed
+			var paramHTML = '<button id="p' + paramID + '" type="button" class="list-group-item" onclick="javascript:selectParameter(this.id)">' + paramText + '</button>';
+			$("#parameterOptions").append(paramHTML);
+		}
+		
+		//clear selection
+		selectParameter('');
+
+		toggleAdditionalParameters();
+		setColumnInitialDisplay()
+	}
+ 
+	function selectParameter(parameterID)
+	{
+		if(parameterID != '' && parameterID != 'Parameter')
+		{	
+			//set text of parameter selection drop-down
+			$("#btnParam").html($("#" + parameterID).html());
+			//set control as needed for various control types (date, drop down checklist, etc...)			
+			setControl(parameterID);
+			//store selected parameterID in hidden field
+			$("#selectedParameterID").val(parameterID);
+		}
+		else //no parameter selected, reset to default
+		{
+			//hide entry controls
+			hideControls();
+			//set parameter selection text
+			$("#btnParam").html("<i>Parameter</i>");
+		}
+	}
+	
+	function setControl(parameterID)
+	{
+		//start by hiding all entry controls
+		hideControls();
+		
+		//get the parameter type for the current parameter type and show appropriate entry control
+		switch(getParameterType(parameterID))
+		{
+			case 'ddlcheckbox':
+				$("#ddlcheckbox").show();
+				populateDDLCheckBoxOptions(parameterID);
+				return;
+			case 'datetime':
+				$("#dtControl").show();
+				return;
+		}		
+	}
+	
+	function getDropDownCheckListButtons(paramID)
+	{
+		var searchTextBoxID = 'paramSearchText_' + paramID;
+		var search = '<li><form class="form-search form-inline"><input type="text" id="' + searchTextBoxID + '" class="checklistsearchtext search-query">';
+		var clear = '<button class="btn btn-xs btn-link pull-right" onclick="event.stopPropagation();clearDropDownCheckListSelections(\'' + paramID + '\');"><i class="glyphicon glyphicon-trash"></i></button></form></li>';
+		
+		return search + clear;
+	}
+	
+	function clearDropDownCheckListSelections(paramID)
+	{
+		//alert(paramID);
+		var x = 0;
+		
+		$("#div_" + paramID).find('input:checkbox').each(function(){
+			x++;
+			$(this).prop("checked", false);
+		}); 	
+		
+		if(x==0)
+		{
+			$("#ddlcheckbox").find('input:checkbox').each(function(){
+				$(this).prop("checked", false);
+			}); 			
+		}
+	}
+	
+	function populateDDLCheckBoxOptions(paramID)
+	{
+		//clear check box list
+		$("#ddlCheckBoxOptions").html("");
+		
+		//add search button and clear checklist button		
+		var buttons = getDropDownCheckListButtons(paramID);
+		
+		$("#ddlcheckbox ul").append(buttons);
+		//$("#ddlcheckbox ul").append('<li><input type="text" id="' + searchTextBoxID + '" class="checklistsearchtext"><button class="btn btn-xs btn-link" onclick="searchParameter(\'' + paramID + '\', \'' + searchTextBoxID + '\');"><i class="glyphicon glyphicon-search"></i></button></li>');
+		
+		//code to end of function will need to be re-wired to read configuration data
+		var options = new Array("");		
+		if(paramID == "p1")
+		{			
+			options = new Array("5197", "5198", "5202");
+		}
+		else if(paramID == "p4")
+		{
+			options = new Array("H1234", "H5678", "H9876", "H5432");
+		}
+		
+		for(x=0; x<options.length; x++)
+		{
+			$("#ddlcheckbox ul").append('<li><input class="dropdown-checkbox" type="checkbox" id="' + x + '" name="' + x + '">' + options[x] + '</li>');
+		}
+					
+	}
+	
+	function hideControls()
+	{
+		$("#ddlcheckbox").hide();
+		$("#dtControl").hide();
+		if(getSelectedParameterCount() == 0)
+		{
+			$("#div_logicalOperator").hide();
+		}
+		
+		//clear entry of date control
+		$("#dtControl").val("");
+			
+	}
+	
+	//will need to be wired into configuration data. Function is called often, so parameter type may be best stored
+	//on the page somewhere
+	function getParameterType(parameterID)
+	{
+		switch(parameterID)
+		{
+			case 'p1':
+						return 'ddlcheckbox';
+			case 'p2':
+						return 'datetime';
+			case 'p3':
+						return 'datetime';	
+			case 'p4':
+						return 'ddlcheckbox';
+			default: 
+						return 'datetime';
+		}
+	}
+	
+	function addParameter()
+	{	
+		//get parameterID from hidden field
+		var paramID=$("#selectedParameterID").val();
+		
+		if(paramID != null && paramID != "")
+		{
+			//id to add on new control created in selected parameters section
+			var newID = "selectedParameter_" + paramID;
+			
+			//get html to add to create control
+			var newhtml = getParameterHTML(paramID, newID);
+			
+			
+			//append new html
+			if(getSelectedParameterCount() < getScreenParameterCount())
+			{			
+				$("#parameterSelections").append(newhtml);	
+			}	
+			else
+			{
+				$("#additionalSelectedParameters").append(newhtml);
+			}
+			
+			toggleAdditionalParameters();
+			
+			//hide selection option from parameter drop-down so same paramter cannot be selected again	
+			$("#" + paramID).hide();
+			
+			//populate copied control with selected value(s)
+			copyParameterValueToControl(paramID, newID);	
+
+			//clear hidden field
+			$("#selectedParameterID").val("");
+			
+			//clear selection
+			selectParameter('');
+
+			//make sure logical operator selection is shown
+			$("#div_logicalOperator").show();
+			
+		}
+		
+		 $("#btnAddParameter").tooltip("hide");
+	}
+	
+	function toggleAdditionalParameters()
+	{
+		
+		if(getAdditionalSelectedParameterCount() > 0)
+		{
+			$("#additionalContainer").show();
+		}
+		else
+		{
+			$("#additionalContainer").hide();
+		}
+		
+	}
+	
+	//returns parameter HTML, for the parameter/control type
+	function getParameterHTML(paramID, newID)
+	{
+		paramType = getParameterType(paramID);
+
+		switch(paramType)
+		{
+			case 'datetime': 
+				return getDateTimeHTML(paramID, newID);
+			case 'ddlcheckbox':
+				return getDropDownCheckBoxHTML(paramID, newID);
+		
+		}
+		
+	}
+	
+	function getDropDownCheckBoxHTML(paramID, newID)
+	{
+		var html = getWidgetWrapper(paramID);
+
+		var control = $("#ddlcheckbox").html();
+		html = html.replace("|BODY|", control);		
+		
+		html = html.replace(/checkboxlistcontrol/g, newID);
+		
+		return html;	
+	}
+	
+	function getDateTimeHTML(paramID, newID)
+	{
+		var html = getWidgetWrapper(paramID);
+		
+		var control = $("#dtPicker").html();
+		html = html.replace("|BODY|", control);
+		
+		html = html.replace(/dtControl/g, newID);
+		
+		
+		return html;
+	}
+	
+	function getLogicalHtml(op, paramID)
+	{
+		var className = getLogicalClassName(op);
+		var spanID = "span_lo_" + paramID;	
+		lo = '<a href="#" onclick="toggleLogical(\'' + spanID + '\');"><span class="label label-' + className + ' logicalOperator" id="' + spanID + '">' + op + ' </span></a> ';
+		
+		return lo;
+	}
+	
+	function getLogicalClassName(op)
+	{
+		className = "";
+		switch(op)
+		{
+			case 'and':
+				className = 'success';
+				break;
+			case 'or':
+				className = 'warning';
+				break;
+			case 'not':
+				className = 'danger';					
+				break;
+		}
+		
+		return className;
+	}
+	
+	function getWidgetWrapper(paramID)
+	{
+		var lo = "";
+		if(getSelectedParameterCount() > 0)
+		{
+			op = $("#btnLogicalOperator").html().toLowerCase();
+			lo = getLogicalHtml(op, paramID);
+		}
+				
+		paramName = $("#btnParam").html();		
+		html = '<div class="col-md-3 col-sm-4 col-xs-6 col-lg-2" id="div_' + paramID + '">' + lo + '<span class="label label-primary widgetHeader">' + paramName + ':</span><button type="button" onclick="removeParameter(\'' + paramID + '\');" class="btn btn-link btn-xs"><span class="right glyphicon glyphicon-remove removeParameterButton" aria-hidden="true"></span></button><br />|BODY|</div>';
+		
+		return html;
+	}
+	//copies selected values to control, per control type
+	function copyParameterValueToControl(paramID, newControlID)
+	{
+		paramType = getParameterType(paramID);
+	
+		switch(paramType)
+		{
+			case 'ddlcheckbox':
+				copyParameters_CheckList(paramID, newControlID);
+				return;
+			case 'datetime':
+				copyParameters_Text(paramID, newControlID, 'dtControl');
+				return;
+	
+		}
+	
+	}
+	
+	function copyParameters_Text(paramID, newControlID, CopyFromControlID)
+	{
+		
+		var newVal = $('#' + CopyFromControlID).val();
+					
+		$("#" + newControlID).val(newVal);
+	}
+	
+	function copyParameters_CheckList(paramID, newControlID)
+	{
+		$('#ddlcheckbox').find('input:checkbox').each(function(){
+			var checked = $(this).prop('checked');
+			$('#div_' + paramID).find('input:checkbox[name="' + $(this).prop('name') + '"]').each(function(){
+				$(this).prop('checked', checked);
+			 });		
+		});
+	}
+	
+	function removeParameter(paramid)
+	{		
+		$("#div_" + paramid).remove();
+		$("#" + paramid).show();
+		
+		x = getSelectedParameterCount();
+				
+		if(x == 0)
+		{
+			$("#div_logicalOperator").hide();
+		}
+		
+		reorderAdditionalParameters();
+	}
+	
+	function searchParameter(paramID, searchTextBoxID)
+	{
+		searchText = $("#" + searchTextBoxID).val();
+		//alert(paramID);
+		//alert(searchText);
+		//alert(searchTextBoxID);
+		
+		//need to plug in filtering/searching functionality here
+	}
+	
+	function selectLogicalOperator(loID)
+	{
+		$("#btnLogicalOperator").html(loID.replace("lo_", "") );
+	}
+	
+	function toggleLogical(spanID)
+	{
+		var current = $("#" + spanID).html();
+		
+		var op = "";
+		var className = "";
+		var currentClass = getLogicalClassName(current.replace(" ", "") );
+		
+		current = current.replace(" ", "");
+		
+		if(current == "and")
+		{
+			op = "or";
+		}
+		else if(current=="or")
+		{
+			op = "not";
+		}
+		else
+		{
+			op = "and";
+		}
+		
+		className = getLogicalClassName(op);
+		
+		$("#" + spanID).html(op + " ");
+		$("#" + spanID).removeClass("label-" + currentClass).addClass("label-" + className);
+	}
+	
+	function getSelectedParameterCount()
+	{
+		
+		var x = 0;
+ 		$('#parameterSelections').find('div').each(function(){
+			x++;
+		}); 	
+		
+		return x;
+	}
+	
+	function getAdditionalSelectedParameterCount()
+	{
+		
+		var x = 0;
+ 		$('#additionalSelectedParameters').find('div').each(function(){
+			x++;
+		}); 	
+		
+		return x;
+	}	
+
+	function getScreenSize()
+	{
+		var size = "";
+	
+		if ($(window).width() < 768) {
+			size = "xs";
+		}
+		else if ($(window).width() >= 768 &&  $(window).width() <= 992) {
+			size = "sm";
+		}
+		else if ($(window).width() > 992 &&  $(window).width() <= 1200) {
+			size = "md";
+		}
+		else  {
+			size = "lg";
+		}	
+		return size;
+
+	}
+	
+	function getScreenParameterCount()
+	{
+		switch(getScreenSize())
+		{
+			case "xs":
+				return 2;
+			case "sm":
+				return 3;
+			case "md":
+				return 4;
+			default:
+				return 6;
+		
+		}
+	}
+	
+	function toggleParameterCollapse()
+	{
+		var newToolTip = "";
+	
+		if($("#parameterCollapseButton").hasClass("glyphicon-chevron-down") ) 
+		{
+			$("#parameterCollapseButton").removeClass("glyphicon-chevron-down").addClass("glyphicon-chevron-up");
+			newToolTip = "Hide Additional Parameters";
+		}
+		else
+		{
+			$("#parameterCollapseButton").removeClass("glyphicon-chevron-up").addClass("glyphicon-chevron-down");
+			newToolTip = "Show Additional Parameters";
+		}
+		
+		$("#parameterCollapseButton").tooltip('hide')
+          .attr('data-original-title', newToolTip)
+          .tooltip('fixTitle')
+          .tooltip('show');	
+	}
+	
+	function reorderAdditionalParameters()
+	{
+			
+		if(getSelectedParameterCount() < getScreenParameterCount() && getAdditionalSelectedParameterCount() > 0 )
+		{
+			var html = "";
+			var id = "";
+			$('#additionalSelectedParameters').find('div').each(function(){
+				if(html == "")
+				{
+					html = $(this).prop('outerHTML');
+					id = $(this).prop("id");
+				}
+			}); 
+			
+			$('#' + id).remove();
+			$("#parameterSelections").append(html);
+			
+			
+		}
+		
+		toggleAdditionalParameters()
+	}
+	
+	
+	function toggleColumnVisibility(checkbox, tableColIndex)
+	{
+		var checked = $(checkbox).is(":checked");
+
+		if(checked)
+		{
+			$('td:nth-child(' + tableColIndex + '),th:nth-child(' + tableColIndex + ')').show();
+		}
+		else
+		{
+			$('td:nth-child(' + tableColIndex + '),th:nth-child(' + tableColIndex + ')').hide();
+		}
+	}
+	
+	function setColumnInitialDisplay()
+	{
+	
+		for(x=11; x<= 26; x++)
+		{
+			$('td:nth-child(' + x + '),th:nth-child(' + x + ')').hide();
+		}
+	}
+
+
+		
+	function ShowFilterModal()
+	{
+	  $('#btnShowFilter').tooltip("hide");
+  
+	  $('#ControlViewFilterModal').modal({
+		keyboard: true,
+		backdrop: "static"
+	  });
+	}
+
+	function ShowSaveModal()
+	{
+	  $('#btnSaveFilter').tooltip("hide");
+  
+	  $('#ControlSaveFilterModal').modal({
+		keyboard: true,
+		backdrop: "static"
+	  });
+	}
+
+	</script>
+ 
+
+</head>
+
+<body onload="javascript:populateParameters();">
+
+<!-- PARAMETER SELECTION -->
+<div class="wrapper container-fluid">
+	
+		<input type="hidden" id="selectedParameterID" value="p10">		
+		<nav class="navbar navbar-default fixed-top">
+		  <!--<div class="container-fluid">-->
+
+				<div class="row">
+					<div class="col-md-8">
+						<div class="input-group vtop">
+							<div class="btn-group">
+								<div class="input-group-addon parameterLabel"> <i>Add Parameter:</i></div>
+							</div>	
+							
+							<div id="div_logicalOperator" class="btn-group" style="display: none;">
+								  <button id="btnLogicalOperator" type="button" class="btn btn-default btn-sm">And</button>
+								  <button type="button" class="btn btn-default btn-sm dropdown-toggle btn" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+									<span class="caret"></span>
+									<span class="sr-only">Toggle Dropdown</span>
+								  </button>
+									<div id="btnLogicalOperator" class="list-group dropdown-menu">
+										<button id="lo_And" type="button" class="list-group-item" onclick="javascript:selectLogicalOperator(this.id)">And</button>
+										<button id="lo_Or" type="button" class="list-group-item" onclick="javascript:selectLogicalOperator(this.id)">Or</button>
+										<button id="lo_Not" type="button" class="list-group-item" onclick="javascript:selectLogicalOperator(this.id)">Not</button>
+									</div>						  
+							</div>							
+							
+							<div class="btn-group">
+								  <button id="btnParam" type="button" class="btn btn-default btn-sm">DateSelector10</button>
+								  <button type="button" class="btn btn-info btn-sm dropdown-toggle btn" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+									<span class="caret"></span>
+									<span class="sr-only">Toggle Dropdown</span>
+								  </button>
+								<div id="parameterOptions" class="list-group dropdown-menu">
+								<button id="p1" type="button" class="list-group-item" onclick="javascript:selectParameter(this.id)">HospitalID</button><button id="p2" type="button" class="list-group-item" onclick="javascript:selectParameter(this.id)">StartDate</button><button id="p3" type="button" class="list-group-item" onclick="javascript:selectParameter(this.id)">EndDate</button><button id="p4" type="button" class="list-group-item" onclick="javascript:selectParameter(this.id)">PhysicianID</button><button id="p5" type="button" class="list-group-item" onclick="javascript:selectParameter(this.id)">DateSelector5</button><button id="p6" type="button" class="list-group-item" onclick="javascript:selectParameter(this.id)">DateSelector6</button><button id="p7" type="button" class="list-group-item" onclick="javascript:selectParameter(this.id)">DateSelector7</button><button id="p8" type="button" class="list-group-item" onclick="javascript:selectParameter(this.id)">DateSelector8</button><button id="p9" type="button" class="list-group-item" onclick="javascript:selectParameter(this.id)">DateSelector9</button><button id="p10" type="button" class="list-group-item" onclick="javascript:selectParameter(this.id)">DateSelector10</button><button id="p11" type="button" class="list-group-item" onclick="javascript:selectParameter(this.id)">DateSelector11</button><button id="p12" type="button" class="list-group-item" onclick="javascript:selectParameter(this.id)">DateSelector12</button><button id="p13" type="button" class="list-group-item" onclick="javascript:selectParameter(this.id)">DateSelector13</button><button id="p14" type="button" class="list-group-item" onclick="javascript:selectParameter(this.id)">DateSelector14</button><button id="p15" type="button" class="list-group-item" onclick="javascript:selectParameter(this.id)">DateSelector15</button><button id="p16" type="button" class="list-group-item" onclick="javascript:selectParameter(this.id)">DateSelector16</button><button id="p17" type="button" class="list-group-item" onclick="javascript:selectParameter(this.id)">DateSelector17</button><button id="p18" type="button" class="list-group-item" onclick="javascript:selectParameter(this.id)">DateSelector18</button><button id="p19" type="button" class="list-group-item" onclick="javascript:selectParameter(this.id)">DateSelector19</button><button id="p20" type="button" class="list-group-item" onclick="javascript:selectParameter(this.id)">DateSelector20</button><button id="p21" type="button" class="list-group-item" onclick="javascript:selectParameter(this.id)">DateSelector21</button><button id="p22" type="button" class="list-group-item" onclick="javascript:selectParameter(this.id)">DateSelector22</button><button id="p23" type="button" class="list-group-item" onclick="javascript:selectParameter(this.id)">DateSelector23</button><button id="p24" type="button" class="list-group-item" onclick="javascript:selectParameter(this.id)">DateSelector24</button><button id="p25" type="button" class="list-group-item" onclick="javascript:selectParameter(this.id)">DateSelector25</button><button id="p26" type="button" class="list-group-item" onclick="javascript:selectParameter(this.id)">DateSelector26</button><button id="p27" type="button" class="list-group-item" onclick="javascript:selectParameter(this.id)">DateSelector27</button><button id="p28" type="button" class="list-group-item" onclick="javascript:selectParameter(this.id)">DateSelector28</button><button id="p29" type="button" class="list-group-item" onclick="javascript:selectParameter(this.id)">DateSelector29</button><button id="p30" type="button" class="list-group-item" onclick="javascript:selectParameter(this.id)">DateSelector30</button></div>						  
+							</div>
+							<div id="ddlcheckbox" class="btn-group" style="display: none;">								
+									<button id="checkboxlistcontrol" type="button" class="btn btn-default dropdown-toggle btn-sm dropdowncheck" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+										<span class="parameterSelect pull-left"><i>Select Value(s)</i></span><span class="caret"></span>
+									</button>
+									<ul class="dropdown-menu" id="ddlCheckBoxOptions">
+									</ul>													
+							</div>
+							<div id="dtPicker" class="btn-group">
+								<input type="text" class="form-control input-sm datepicker" id="dtControl" style="display: block;">
+								<script type="text/javascript">
+									$(function () {
+										$('#dtControl').datetimepicker({format:'MM/DD/YYYY', showClear:true});
+									});
+								</script>	
+							</div>				 
+							<div class="btn-group">
+								<button type="button" class="btn btn-primary btn-sm" onclick="addParameter();" data-toggle="tooltip" data-placement="bottom" title="" id="btnAddParameter" data-original-title="Add Parameter"><i class="glyphicon glyphicon-plus"></i></button>
+							</div>
+						</div>
+					</div>
+					<div class="col-md-4">
+						<div class="navbar-right">
+							<!--<div class="btn-group">-->
+
+								<button type="button" class="btn btn-primary btn-lg" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="View Report"><i class="glyphicon glyphicon-list-alt"></i></button>
+								
+								<!--<div class="btn-group">-->
+									<button type="button" class="btn btn-primary btn-lg exportbutton" data-toggle="dropdown" data-placement="bottom" title="">
+										<i class="glyphicon glyphicon-download-alt"></i>																				
+										<span class="caret ExportCaret"></span>
+									</button> 
+									 <!--<button type="button" class="btn btn-lg btn-primary dropdown-toggle navbar-btn ExportCaret" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+										<span class="caret"></span>
+										<span class="sr-only">Toggle Dropdown</span>
+									 </button>-->									
+									
+									<ul class="dropdown-menu" id="resourceOptions"> 
+										<li><button type="button" class="btn btn-link"> Export Now </button></li>
+										<li><button type="button" class="btn btn-link" onclick="ShowScheduleModal();"> Schedule </button></li>
+									</ul>
+									
+								<!--</div>-->
+								
+								<button type="button" class="btn btn-primary btn-lg" data-toggle="tooltip" data-placement="bottom" title="" onclick="ShowSaveModal();" data-original-title="Save Current Filter Selections"><i class="glyphicon glyphicon-floppy-disk"></i></button>
+								<button type="button" class="btn btn-primary btn-lg" data-toggle="tooltip" data-placement="bottom" title="" onclick="ShowFilterModal();" id="btnShowFilter" data-original-title="Load Saved Filter"><i class="glyphicon glyphicon-filter"></i></button>
+								<!--</div>	-->
+						</div>
+					</div>		
+				</div><!-- /row -->								
+		</nav>
+			<!-- SELECTED PARAMETERS -->
+ 			<div class="container-fluid selectedParametersContainer">
+					<div id="parameterSelections">	
+
+				
+					</div>
+			</div>
+
+		<div class="panel-group selectedParametersContainer col-lg-12 col-md-12 col-sm-12 col-xs-12" id="additionalContainer" style="display: none;">
+		  <div class="panel panel-default">
+			<div class="panel-heading text-center parameterCollapseHeader">
+				<button type="button" onclick="toggleParameterCollapse();" class="btn-primary btn-circle" data-target="#toggleAdditional" data-toggle="collapse"><i id="parameterCollapseButton" class="glyphicon glyphicon-chevron-down" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="Show Additional Parameters"></i></button>
+			</div>
+			<div class="panel-collapse collapse" id="toggleAdditional">
+			  <div class="panel-body parameterCollapsePanel" id="additionalSelectedParameters">
+
+			  </div>
+			</div>
+		  </div>
+		</div>			
+			
+</div> <!-- wrapper -->
+
+	<!-- PAGING AND REPORT TABLE -->
+	<div class="container-fluid">
+
+		<ul class="pagination pagination-sm">
+			<li><a href="http://rhwapp580d:8000/#">«</a></li>
+			<li><a href="http://rhwapp580d:8000/#">1</a></li>
+			<li><a href="http://rhwapp580d:8000/#">2</a></li>
+			<li><a href="http://rhwapp580d:8000/#">3</a></li>
+			<li><a href="http://rhwapp580d:8000/#">4</a></li>
+			<li class="active"><a href="http://rhwapp580d:8000/#">5</a></li>
+			<li><a href="http://rhwapp580d:8000/#">6</a></li>
+			<li><a href="http://rhwapp580d:8000/#">7</a></li>
+			<li><a href="http://rhwapp580d:8000/#">8</a></li>
+			<li><a href="http://rhwapp580d:8000/#">9</a></li>
+			<li><a href="http://rhwapp580d:8000/#">10</a></li>		
+			<li><a href="http://rhwapp580d:8000/#">»</a></li>
+		</ul>
+		<small><span class="GoToText">Viewing page 5 of 100. Go to page</span></small><input type="text" id="gtp" name="gtp" class="GoToPageTextBox">
+		
+		<div class="btn-group pull-right columnChooser">
+		  <button type="button" class="btn btn-default">Choose Columns...</button>
+		  <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+			<span class="caret"></span>
+			<span class="sr-only">Toggle Dropdown</span>
+		  </button>
+		  <ul class="dropdown-menu">
+			<li><input type="checkbox" onchange="toggleColumnVisibility(this, 1);" checked="true"> MRN</li>
+			<li><input type="checkbox" onchange="toggleColumnVisibility(this, 2);" checked="true"> PatientName</li>
+			<li><input type="checkbox" onchange="toggleColumnVisibility(this, 3);" checked="true"> GuarantorID</li>
+			<li><input type="checkbox" onchange="toggleColumnVisibility(this, 4);" checked="true"> ServiceDate</li>
+			<li><input type="checkbox" onchange="toggleColumnVisibility(this, 5);" checked="true"> Site</li>
+			<li><input type="checkbox" onchange="toggleColumnVisibility(this, 6);" checked="true"> Department</li>
+			<li><input type="checkbox" onchange="toggleColumnVisibility(this, 7);" checked="true"> DeptSpecialty</li>
+			<li><input type="checkbox" onchange="toggleColumnVisibility(this, 8);" checked="true"> CostCenterCredit</li>
+			<li><input type="checkbox" onchange="toggleColumnVisibility(this, 9);" checked="true"> BillingProviderName</li>
+			<li><input type="checkbox" onchange="toggleColumnVisibility(this, 10);" checked="true"> BillingProviderSpec</li>
+			<li><input type="checkbox" onchange="toggleColumnVisibility(this, 11);"> MeasureType</li>
+			<li><input type="checkbox" onchange="toggleColumnVisibility(this, 12);"> ServiceProviderSpec</li>
+			<li><input type="checkbox" onchange="toggleColumnVisibility(this, 13);"> FinancialClass</li>
+			<li><input type="checkbox" onchange="toggleColumnVisibility(this, 14);"> Plan</li>
+			<li><input type="checkbox" onchange="toggleColumnVisibility(this, 15);"> CPT</li>
+			<li><input type="checkbox" onchange="toggleColumnVisibility(this, 16);"> Mod1</li>
+			<li><input type="checkbox" onchange="toggleColumnVisibility(this, 17);"> Mod2</li>
+			<li><input type="checkbox" onchange="toggleColumnVisibility(this, 18);"> Qty</li>
+			<li><input type="checkbox" onchange="toggleColumnVisibility(this, 19);"> Charge</li>
+			<li><input type="checkbox" onchange="toggleColumnVisibility(this, 20);"> InsurancePayments</li>
+			<li><input type="checkbox" onchange="toggleColumnVisibility(this, 21);"> InsuranceAdj</li>
+			<li><input type="checkbox" onchange="toggleColumnVisibility(this, 22);"> PatientPayments</li>
+			<li><input type="checkbox" onchange="toggleColumnVisibility(this, 23);"> PatientAdj</li>
+			<li><input type="checkbox" onchange="toggleColumnVisibility(this, 24);"> InsuranceBalance</li>
+			<li><input type="checkbox" onchange="toggleColumnVisibility(this, 25);"> PatientBalance</li>
+			<li><input type="checkbox" onchange="toggleColumnVisibility(this, 26);"> ChargeStatus</li>
+		  </ul>
+		</div>
+		
+		<div class="resultsDiv vScroll">
+		<table class="table table-bordered table-hover resultsTable">
+			<thead>
+				<tr><th name="col1">MRN</th>
+				<th name="col2">PatientName</th>
+				<th name="col3">GuarantorID</th>
+				<th name="col4">ServiceDate</th>
+				<th name="col5">Site</th>
+				<th name="col6">Department</th>
+				<th name="col7">DeptSpecialty</th>
+				<th name="col8">CostCenterCredit</th>
+				<th name="col9">BillingProviderName</th>
+				<th name="col10">BillingProviderSpecialty</th>
+				<th name="col11" style="display: none;">MeasureType</th>
+				<th name="col12" style="display: none;">ServiceProviderSpecialty</th>
+				<th name="col13" style="display: none;">FinancialClass</th>
+				<th name="col14" style="display: none;">Plan</th>
+				<th name="col15" style="display: none;">CPT</th>
+				<th name="col16" style="display: none;">Mod2</th>
+				<th name="col18" style="display: none;">Qty</th>
+				<th name="col19" style="display: none;">Charge</th>
+				<th name="col20" style="display: none;">InsurancePayments</th>
+				<th name="col21" style="display: none;">InsuranceAdj</th>
+				<th name="col22" style="display: none;">PatientPayments</th>
+				<th name="col23" style="display: none;">PatientAdj</th>
+				<th name="col24" style="display: none;">InsuranceBalance</th>
+				<th name="col25" style="display: none;">PatientBalance</th>
+				<th name="col26" style="display: none;">ChargeStatus</th>
+			</tr></thead>
+			<tbody>
+				<tr>
+					<td> 1</td>
+					<td> </td>
+					<td> </td>
+					<td> </td>
+					<td> </td>
+					<td> </td>
+					<td> </td>
+					<td> </td>
+					<td> </td>
+					<td> </td>
+					<td style="display: none;"> </td>
+					<td style="display: none;"> </td>
+					<td style="display: none;"> </td>
+					<td style="display: none;"> </td>
+					<td style="display: none;"> </td>
+					<td style="display: none;"> </td>
+					<td style="display: none;"> </td>
+					<td style="display: none;"> </td>
+					<td style="display: none;"> </td>
+					<td style="display: none;"> </td>
+					<td style="display: none;"> </td>
+					<td style="display: none;"> </td>
+					<td style="display: none;"> </td>
+					<td style="display: none;"> </td>
+					<td style="display: none;"> </td>
+					<td style="display: none;"> </td>
+				</tr>
+				<tr>
+					<td> 2</td>
+					<td> </td>
+					<td> </td>
+					<td> </td>
+					<td> </td>
+					<td> </td>
+					<td> </td>
+					<td> </td>
+					<td> </td>
+					<td> </td>
+					<td style="display: none;"> </td>
+					<td style="display: none;"> </td>
+					<td style="display: none;"> </td>
+					<td style="display: none;"> </td>
+					<td style="display: none;"> </td>
+					<td style="display: none;"> </td>
+					<td style="display: none;"> </td>
+					<td style="display: none;"> </td>
+					<td style="display: none;"> </td>
+					<td style="display: none;"> </td>
+					<td style="display: none;"> </td>
+					<td style="display: none;"> </td>
+					<td style="display: none;"> </td>
+					<td style="display: none;"> </td>
+					<td style="display: none;"> </td>
+					<td style="display: none;"> </td>
+				</tr>
+				<tr>
+					<td> 3</td>
+					<td> </td>
+					<td> </td>
+					<td> </td>
+					<td> </td>
+					<td> </td>
+					<td> </td>
+					<td> </td>
+					<td> </td>
+					<td> </td>
+					<td style="display: none;"> </td>
+					<td style="display: none;"> </td>
+					<td style="display: none;"> </td>
+					<td style="display: none;"> </td>
+					<td style="display: none;"> </td>
+					<td style="display: none;"> </td>
+					<td style="display: none;"> </td>
+					<td style="display: none;"> </td>
+					<td style="display: none;"> </td>
+					<td style="display: none;"> </td>
+					<td style="display: none;"> </td>
+					<td style="display: none;"> </td>
+					<td style="display: none;"> </td>
+					<td style="display: none;"> </td>
+					<td style="display: none;"> </td>
+					<td style="display: none;"> </td>
+				</tr>
+				<tr>
+					<td> 4</td>
+					<td> </td>
+					<td> </td>
+					<td> </td>
+					<td> </td>
+					<td> </td>
+					<td> </td>
+					<td> </td>
+					<td> </td>
+					<td> </td>
+					<td style="display: none;"> </td>
+					<td style="display: none;"> </td>
+					<td style="display: none;"> </td>
+					<td style="display: none;"> </td>
+					<td style="display: none;"> </td>
+					<td style="display: none;"> </td>
+					<td style="display: none;"> </td>
+					<td style="display: none;"> </td>
+					<td style="display: none;"> </td>
+					<td style="display: none;"> </td>
+					<td style="display: none;"> </td>
+					<td style="display: none;"> </td>
+					<td style="display: none;"> </td>
+					<td style="display: none;"> </td>
+					<td style="display: none;"> </td>
+					<td style="display: none;"> </td>
+				</tr>
+			</tbody>
+			
+		</table>
+	</div>
+
+
+		<!-- View Filter Modal -->
+		<div id="ControlViewFilterModal" class="modal fade" role="dialog">
+		  <div class="modal-dialog modal-md">
+
+			<!-- Modal content-->
+			<div class="modal-content">
+			  <div class="modal-header">
+				<button type="button" class="btn-danger pull-right" data-dismiss="modal">×</button>
+				<h4 class="modal-title">Saved Filters</h4>
+			  </div>
+			  <div class="modal-body">		
+
+						<ul class="list-group">
+							<li class="list-group-item"><a href="http://rhwapp580d:8000/#">Filter 1</a></li>
+							<li class="list-group-item"><a href="http://rhwapp580d:8000/#">Filter 2</a></li>
+							<li class="list-group-item"><a href="http://rhwapp580d:8000/#">Filter 3</a></li>
+							<li class="list-group-item"><a href="http://rhwapp580d:8000/#">Filter 4</a></li>
+						</ul>
+
+				
+			  </div>
+			  <div class="modal-footer">
+				<button type="button" class="btn btn-primary" data-dismiss="modal">Close</button> 
+			  </div>
+			</div>
+
+		  </div>
+		</div>
+
+		<!-- Save Filter Modal -->
+		<div id="ControlSaveFilterModal" class="modal fade" role="dialog">
+		  <div class="modal-dialog modal-md">
+
+			<!-- Modal content-->
+			<div class="modal-content">
+			  <div class="modal-header">
+				<button type="button" class="btn-danger pull-right" data-dismiss="modal">×</button>
+				<h4 class="modal-title">Save Filter</h4>
+			  </div>
+			  <div class="modal-body">				
+				<div>
+					<form class="form-horizontal" role="form">
+						<div class="form-group">
+							<div class="col-xs-3">
+								<label for="txtFilterName" class="control-label">Filter Name:</label>
+							</div>
+							<div class="col-xs-7">
+								<input id="txtFilterName" type="text" class="form-control filterNameText">						
+							</div>	
+						</div>
+					</form>
+				  </div>
+					<div>
+						Your selected filter is: .....
+					</div>
+				</div>
+
+			  
+			  <div class="modal-footer">
+				<button type="button" class="btn btn-danger" data-dismiss="modal">Save</button> 
+				<button type="button" class="btn btn-warning" data-dismiss="modal">Close</button> 
+			  </div>
+			</div>
+
+		  </div>
+		</div>
+
+
+		<!-- Schedule Export Modal -->
+		<div id="ScheduleExportModal" class="modal fade" role="dialog">
+		  <div class="modal-dialog modal-md">
+
+			<!-- Modal content-->
+			<div class="modal-content">
+			  <div class="modal-header">
+				<button type="button" class="btn-danger pull-right" data-dismiss="modal">×</button>
+				<h4 class="modal-title">Schedule Export</h4>
+			  </div>
+			  <div class="modal-body">	
+
+			  <div class="container-fluid">
+				<div class="row">
+				
+					<div class="panel panel-default">
+						<div class="panel-heading">
+							<div class="input-group">
+								
+								<div class="input-group-btn" role="group">
+								  <input type="text" class="form-control form-control-sm exportScheduleList" id="txtExportSchedule">
+								  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown"><i class="glyphicon glyphicon-folder-open"></i></button>
+									<ul class="dropdown-menu exportScheduleList">
+										<li><button class="btn btn-link dropdownlibutton" onclick="SelectExportSchedule(this);">Export Schedule 1</button> &nbsp;&nbsp;&nbsp;<button type="button" class="btn btn-sm btn-link"><i class="glyphicon glyphicon-trash"></i></button></li>
+										<li><button class="btn btn-link dropdownlibutton" onclick="SelectExportSchedule(this);">Export Schedule 2</button>  &nbsp;&nbsp;&nbsp;<button type="button" class="btn btn-sm btn-link"><i class="glyphicon glyphicon-trash"></i></button></li>
+										<li><button class="btn btn-link dropdownlibutton" onclick="SelectExportSchedule(this);">My Saved Export Schedule</button>  &nbsp;&nbsp;&nbsp;<button type="button" class="btn btn-sm btn-link"><i class="glyphicon glyphicon-trash"></i></button></li>
+									</ul>
+								  <button type="button" class="btn btn-default" data-toggle="popover" data-trigger="focus" data-placement="bottom" data-html="true" title="" data-content="Type in a name and click the &#39;Save&#39; button (bottom of this control) to save/schedule your export.  You can overwrite a previously created schedule by using the same name. &lt;br /&gt;&lt;br /&gt; Click the open button ( &lt;i class=&#39;glyphicon glyphicon-folder-open&#39;&gt;&lt;/i&gt; ) to load a previously saved export schedule.  Click the trash icon (&lt;i class=&#39;glyphicon glyphicon-trash&#39;&gt;&lt;/i&gt;) next to a saved export schedule to delete it" data-original-title="Saved Export Schedules"><i class="glyphicon glyphicon-info-sign"></i></button>							  
+								</div>
+											 				 
+							</div>						
+						</div>
+						<div class="panel-body">
+								<div class="col-xs-3">
+									<div class="span2">
+										<ul class="nav nav-pills nav-stacked">
+										  <li><a href="http://rhwapp580d:8000/#" class="list-group-item exportScheduleTab" id="tabOneTime" onclick="toggleSchedule(&quot;OneTime&quot;)">One Time </a></li>
+										  <li><a href="http://rhwapp580d:8000/#" class="list-group-item exportScheduleTab" id="tabDaily" onclick="toggleSchedule(&quot;Daily&quot;)">Daily </a></li>
+										  <li><a href="http://rhwapp580d:8000/#" class="list-group-item exportScheduleTab" id="tabWeekly" onclick="toggleSchedule(&quot;Weekly&quot;)">Weekly </a></li>
+										  <li><a href="http://rhwapp580d:8000/#" class="list-group-item exportScheduleTab" id="tabMonthly" onclick="toggleSchedule(&quot;Monthly&quot;)">Monthly </a></li>
+										  <li><a href="http://rhwapp580d:8000/#" class="list-group-item exportScheduleTab" id="tabQuarterly" onclick="toggleSchedule(&quot;Quarterly&quot;)">Quarterly </a></li>
+										</ul>
+									</div>	
+								</div>
+					  
+							
+								<form class="form-horizontal" role="form" id="frmSchedule">
+								
+									<!-- ONE TIME SCHEDULE -->
+									<div id="div_scheduleOneTime" style="display:none;">
+										<div class="form-group">
+											<label for="dtScheduleOneTime" class="control-label col-xs-3">Date: </label>
+											<input type="text" class="form-control input-sm datepicker scheduleDateTime col-xs-4" id="dtScheduleOnceDate">
+											<script type="text/javascript">
+												$(function () {
+													$('#dtScheduleOnceDate').datetimepicker({format:'MM/DD/YYYY', showClear:true});
+												});
+											</script>
+											<br>
+											<br>
+											<label class="control-label col-xs-3">Time: </label>
+											<input type="text" class="form-control input-sm datepicker scheduleDateTime col-xs-4" id="dtScheduleOnceTime">
+											<script type="text/javascript">
+												$(function () {
+													$('#dtScheduleOnceTime').datetimepicker({format:'HH:mm', showClear:true});
+												});
+											</script>											
+											
+											
+										</div>	
+									</div>
+									
+									<!-- SCHEDULE TO RUN DAILY -->
+									<div id="div_scheduleDaily" style="display:none">
+										<div class="form-group">
+
+											<label class="control-label col-xs-3">Time: </label>
+											<input type="text" class="form-control input-sm datepicker scheduleDateTime col-xs-4" id="dtScheduleDailyTime">
+											<script type="text/javascript">
+												$(function () {
+													$('#dtScheduleDailyTime').datetimepicker({format:'HH:mm', showClear:true});
+												});
+											</script>								
+											<br>
+											<br>
+											<label class="control-label col-xs-3">Start Date: </label>
+											<input type="text" class="form-control input-sm datepicker scheduleDateTime col-xs-4" id="dtScheduleDailyStart">
+											<script type="text/javascript">
+												$(function () {
+													$('#dtScheduleDailyStart').datetimepicker({format:'MM/DD/YYYY', showClear:true});
+												});
+											</script>
+											<br>
+											<br>
+											<label class="control-label col-xs-3">End Date: </label>
+											<div class="input-group">
+												<span class="input-group-addon">
+													<input type="checkbox" id="chkScheduleDailyEnd" onclick="toggleExportScheduleCheckbox(this);">
+												</span>
+												<input type="text" class="form-control input-sm datepicker scheduleDateTimeWithCheck col-xs-4" id="dtScheduleDailyEnd" disabled="">
+												<script type="text/javascript">
+													$(function () {
+														$('#dtScheduleDailyEnd').datetimepicker({format:'MM/DD/YYYY', showClear:true});
+													});
+												</script>
+											</div>
+											
+											<br>
+											
+											<div class="col-xs-3"></div>
+											<div class="col-xs-4">
+																				 
+												<div class="radio">
+												  <input type="radio" name="DailyScheduleDays">Every <input type="text" class="scheduleRadioDays"> days
+												</div>									
+												<div class="radio">
+												  <input type="radio" name="DailyScheduleDays">Every workday
+												</div>
+												
+											</div>
+										</div>	
+									</div>
+									
+									<!-- SCHEDULE TO RUN WEEKLY -->
+									<div id="div_scheduleWeekly" style="display:none">
+										<div class="form-group">
+
+											<label class="control-label col-xs-3">Time: </label>
+											<input type="text" class="form-control input-sm datepicker scheduleDateTime col-xs-4" id="dtScheduleWeeklyTime">
+											<script type="text/javascript">
+												$(function () {
+													$('#dtScheduleWeeklyTime').datetimepicker({format:'HH:mm', showClear:true});
+												});
+											</script>								
+											<br>
+											<br>
+											<label class="control-label col-xs-3">Start Date: </label>
+											<input type="text" class="form-control input-sm datepicker scheduleDateTime col-xs-4" id="dtScheduleWeeklyStart">
+											<script type="text/javascript">
+												$(function () {
+													$('#dtScheduleWeeklyStart').datetimepicker({format:'MM/DD/YYYY', showClear:true});
+												});
+											</script>
+											<br>
+											<br>
+											<label class="control-label col-xs-3">End Date: </label>
+											<div class="input-group">
+												<span class="input-group-addon">
+													<input type="checkbox" id="chkScheduleWeeklyEnd" onclick="toggleExportScheduleCheckbox(this);">
+												</span>
+												<input type="text" class="form-control input-sm datepicker scheduleDateTimeWithCheck col-xs-4" id="dtScheduleWeeklyEnd" disabled="">
+												<script type="text/javascript">
+													$(function () {
+														$('#dtScheduleWeeklyEnd').datetimepicker({format:'MM/DD/YYYY', showClear:true});
+													});
+												</script>
+											</div>
+											<br>
+											
+											<!--<div class="col-xs-1"></div>-->
+											<!--<div class="col-xs-4">-->
+																				 
+												<div class="checkbox col-xs-2">
+												  <input type="checkbox" name="WeeklyScheduleDays">Monday
+												</div>									
+												<div class="checkbox col-xs-2">
+												  <input type="checkbox" name="WeeklyScheduleDays">Tuesday
+												</div>
+												<div class="checkbox col-xs-2">
+												  <input type="checkbox" name="WeeklyScheduleDays">Wednesday
+												</div>
+												<div class="checkbox col-xs-2">
+												  <input type="checkbox" name="WeeklyScheduleDays">Thursday
+												</div>
+												<div class="checkbox col-xs-2">
+												  <input type="checkbox" name="WeeklyScheduleDays">Friday
+												</div>
+												<div class="checkbox col-xs-2">
+												  <input type="checkbox" name="WeeklyScheduleDays">Saturday
+												</div>
+												<div class="checkbox col-xs-2">
+												  <input type="checkbox" name="WeeklyScheduleDays">Sunday
+												</div>										
+											<!--</div>-->
+										</div>
+									</div>
+									
+									<!--SCHEDULE TO RUN MONTHLY -->
+									<div id="div_scheduleMonthly" style="display:none">
+										<div class="form-group">
+
+											<label class="control-label col-xs-3">Time: </label>
+											<input type="text" class="form-control input-sm datepicker scheduleDateTime col-xs-4" id="dtScheduleMonthlyTime">
+											<script type="text/javascript">
+												$(function () {
+													$('#dtScheduleMonthlyTime').datetimepicker({format:'HH:mm', showClear:true});
+												});
+											</script>								
+											<br>
+											<br>
+											<label class="control-label col-xs-3">Start Date: </label>
+											<input type="text" class="form-control input-sm datepicker scheduleDateTime col-xs-4" id="dtScheduleMonthlyStart">
+											<script type="text/javascript">
+												$(function () {
+													$('#dtScheduleMonthlyStart').datetimepicker({format:'MM/DD/YYYY', showClear:true});
+												});
+											</script>
+											<br>
+											<br>
+											<label class="control-label col-xs-3">End Date: </label>
+											<div class="input-group">
+												<span class="input-group-addon">
+													<input type="checkbox" id="chkScheduleMonthlyEnd" onclick="toggleExportScheduleCheckbox(this);">
+												</span>
+												<input type="text" class="form-control input-sm datepicker scheduleDateTimeWithCheck col-xs-4" id="dtScheduleMonthlyEnd" disabled="">
+												<script type="text/javascript">
+													$(function () {
+														$('#dtScheduleMonthlyEnd').datetimepicker({format:'MM/DD/YYYY', showClear:true});
+													});
+												</script>
+											</div>
+											<br>
+											
+											<div class="col-xs-3"></div>
+											<div class="col-xs-4">
+																				 
+												<div class="radio">
+												  <input type="radio" name="MonthlyScheduleDays">Day of Month: <input type="text" class="scheduleRadioDays">
+												</div>									
+												<div class="radio">
+												  <input type="radio" name="MonthlyScheduleDays">Last Day of Month
+												</div>
+												
+											</div>
+										</div>	
+									</div>
+
+									<!--SCHEDULE TO RUN QUARTERLY -->
+									<div id="div_scheduleQuarterly" style="display:none">
+										<div class="form-group">
+
+											<label class="control-label col-xs-3">Time: </label>
+											<input type="text" class="form-control input-sm datepicker scheduleDateTime col-xs-4" id="dtScheduleQuarterlyTime">
+											<script type="text/javascript">
+												$(function () {
+													$('#dtScheduleQuarterlyTime').datetimepicker({format:'HH:mm', showClear:true});
+												});
+											</script>								
+											<br>
+											<br>
+											<label class="control-label col-xs-3">Start Date: </label>
+											<input type="text" class="form-control input-sm datepicker scheduleDateTime col-xs-4" id="dtScheduleQuarterlyStart">
+											<script type="text/javascript">
+												$(function () {
+													$('#dtScheduleQuarterlyStart').datetimepicker({format:'MM/DD/YYYY', showClear:true});
+												});
+											</script>
+											<br>
+											<br>
+											<label class="control-label col-xs-3">End Date: </label>
+											<div class="input-group">
+												<span class="input-group-addon">
+													<input type="checkbox" id="chkScheduleQuarterlyEnd" onclick="toggleExportScheduleCheckbox(this);">
+												</span>
+												<input type="text" class="form-control input-sm datepicker scheduleDateTimeWithCheck col-xs-4" id="dtScheduleQuarterlyEnd" disabled="">
+												<script type="text/javascript">
+													$(function () {
+														$('#dtScheduleQuarterlyEnd').datetimepicker({format:'MM/DD/YYYY', showClear:true});
+													});
+												</script>
+											</div>
+											<br>
+											
+											<div class="col-xs-3"></div>
+											<div class="col-xs-4">
+																				 
+												<div class="radio">
+												  <input type="radio" name="QuarterlyScheduleDays">Day of Quarter: <input type="text" class="scheduleRadioDays">
+												</div>									
+												<div class="radio">
+												  <input type="radio" name="QuarterlyScheduleDays">Last Day of Quarter
+												</div>
+												
+											</div>
+										</div>	
+									</div>								
+
+								</form>
+							</div>
+
+					</div>  
+					  
+				</div>
+			
+			  </div>
+			</div>
+
+				<script>
+					function ShowScheduleModal()
+					{
+					  $('#btnSaveFilter').tooltip("hide");
+				  
+					  $('#ScheduleExportModal').modal({
+						keyboard: true,
+						backdrop: "static"
+					  });	
+					}
+	
+					function toggleSchedule(showItem)
+					{
+						$('#frmSchedule').find('div').each(function(){
+							
+							id = $(this).prop("id");
+							
+							if( id.substring(0,12) == "div_schedule" )
+							{
+								$(this).hide();
+							}		
+						});
+						
+						
+						$(document).find('.exportScheduleTab').each(function(){
+							$(this).removeClass("active");							
+						});
+						
+						$("#tab" + showItem).addClass("active");
+						
+						$('#div_schedule' + showItem).show();
+						
+					}
+	
+					function SelectExportSchedule(selectedItem)
+					{	
+						selectedVal = $(selectedItem).html();
+						$("#txtExportSchedule").val( selectedVal );
+					}
+	
+					function toggleExportScheduleCheckbox(checkbox)
+					{
+						textbox = $(checkbox).prop("id").replace("chk", "dt");						
+						var currentlyDisabled = $("#" + textbox).prop("disabled");
+						
+								
+						if(currentlyDisabled == false)
+						{
+							$("#" + textbox).val("");
+							$("#" + textbox).prop("disabled", true);
+						}
+						else
+						{
+							$("#" + textbox).prop("disabled", false);
+						}
+						
+						
+					}
+	
+				</script>
+			
+			  
+			  <div class="modal-footer">
+				<button type="button" class="btn btn-danger" data-dismiss="modal">Save</button> 
+				<button type="button" class="btn btn-warning" data-dismiss="modal">Close</button> 
+			  </div>
+			</div>
+
+		  </div>
+		</div>
+
+		
+
+</div></body></html>
