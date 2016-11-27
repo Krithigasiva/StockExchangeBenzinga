@@ -1,0 +1,231 @@
+﻿
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="" />
+    <meta name="author" content="" />
+
+    <title>EMIR Dictionary</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link href="css/bootstrap.min.css" rel="stylesheet" />
+
+    <!-- Custom CSS -->
+    <link href="css/sb-admin.css" rel="stylesheet" />
+
+    <!-- Custom Fonts -->
+    <link href="font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular.min.js"></script>
+
+    <script src="js/angularjsScript1.js"></script>
+     <!--HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+</head>
+
+<body ng-app="indexhtml">
+
+    <div id="wrapper" ng-controller="maincontroller">
+        <!-- Navigation -->
+        <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="index.html">EMIR Data Dictionary</a>
+            </div>
+            <!-- <span class="pull-left">
+                                <img class="media-object" src="/Images/henryford.gif" alt=""></span>
+            -->
+            <!-- Sidebar Menu Items - These collapse to the responsive navigation menu on small screens -->
+            <div class="collapse navbar-collapse navbar-ex1-collapse">
+                <ul class="nav navbar-nav side-nav">
+                    <li>
+                        <a href="index.html"><i class="fa fa-fw fa-table"></i> Tables</a>
+                    </li>
+                    <li>
+                        <!-- <a href="configuration.html"><i class="fa fa-fw fa-dashboard"></i> Configuration</a>-->
+                        <a data-toggle="collapse in " data-target="#demo"><i class="fa fa-fw fa-dashboard"></i> Configuration<i class="fa fa-fw fa-caret-down"></i></a>
+                        <ul id="demo" class="collapse in">
+                            <li ng-repeat="menu in menus">
+                                <a href="#{{menu.DisplayName}}" ng-click="loadsubMenu(menu.DisplayName,menu.DictionaryQuery)">{{menu.DisplayName}}</a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+        </nav>
+
+        <div id="page-wrapper">
+
+            <div class="container-fluid">
+
+                <!-- Page Heading -->
+                <div class="row">
+                    <div class="col-lg-12">
+                        <h1 class="page-header">
+                            {{Heading}}
+                        </h1>
+                        <!-- <ol class="breadcrumb">
+                    <li>
+                        <i class="fa fa-dashboard"></i> Projects/Data Tables & Views
+                    </li>
+                </ol>-->
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Projects</label>
+                    <select class="form-control" ng-model="dropdownValue" ng-change="getValue(dropdownValue)">
+                        <option value="">Choose a project</option>
+                        <option ng:repeat="project in projectlist" value="{{project.ID}}">
+                            {{project.SubjectAreaName}}
+                        </option>
+                    </select>
+                </div>
+                <div class="row" align="center">
+                    <div class="col-sm-4"></div>
+                    <div class="col-sm-4">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <h3 class="panel-title">PSA to Instance</h3>
+                            </div>
+                            <div class="panel-body">
+                                <button type="button" class="btn btn-info">Pre Copy Scripts</button>
+                                <button type="button" class="btn btn-info"> EDW Copier </button>
+                                <button type="button" class="btn btn-info"> PostCopy Script</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row" align="center">
+                    <div class="col-sm-4"></div>
+                    <div class="col-sm-4">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <h3 class="panel-title">EDW_Standardisation</h3>
+                            </div>
+                            <div class="panel-body">
+                                <button type="button" class="btn btn-info"> Standard Code Mappings</button>
+                                <button type="button" class="btn btn-info"> Sources</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row" align="center">
+                    <div class="col-sm-4"></div>
+                    <div class="col-sm-4">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <h3 class="panel-title">Instance to Cleansed</h3>
+                            </div>
+                            <div class="panel-body">
+                                <button type="button" class="btn btn-info">Pre-Copy Scripts</button>
+                                <button type="button" class="btn btn-info"> Post Copy Scripts</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row" align="center">
+                    <div class="col-sm-4"></div>
+                    <div class="col-sm-4" >
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <h3 class="panel-title">EDW_DQS</h3>
+                            </div>
+                            <div class="panel-body">
+                                <button type="button" class="btn btn-info">Pre-Extensions</button>
+                                <button type="button" class="btn btn-info"> Post Extensions</button>
+                                <button type="button" class="btn btn-info"> Sources</button>
+                                <button type="button" class="btn btn-info"> Cleansing Rules</button>
+                                <button type="button" class="btn btn-info"> Cleansing Details</button>
+                                <button type="button" class="btn btn-info"> Cleansing Extension Points</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row" align="center">
+                    <div class="col-sm-4"></div>
+                    <div class="col-sm-4">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <h3 class="panel-title">EDW_Matching</h3>
+                            </div>
+                            <div class="panel-body">
+                                <button type="button" class="btn btn-info">Pre-Extensions</button>
+                                <button type="button" class="btn btn-info"> Match Procedures</button>
+                                <button type="button" class="btn btn-info"> Post Extensions</button>
+                                <button type="button" class="btn btn-info"> Matching Rules</button>
+                                <button type="button" class="btn btn-info"> Score Threshold</button>
+                                <button type="button" class="btn btn-info"> Matching Parameter</button>
+                                <button type="button" class="btn btn-info"> Matching Extensions</button>
+                                <button type="button" class="btn btn-info">Fuzzy Configuration</button>
+                                <button type="button" class="btn btn-info"> CDC Tables</button>
+                                <button type="button" class="btn btn-info"> CDC Columns</button>
+                                <button type="button" class="btn btn-info"> Sources</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!--     <div class="row">
+            <div class="col-lg-6">
+                <div class="table-responsive">
+                    <section>
+                        <table class="table">
+                            <tbody>
+                                <tr>
+
+                                </tr>
+                                <tr></tr>
+                                <tr>
+                                    <td>&nbsp</td>
+                                    <td><button type="button" class="btn btn-warning"> EDW_Standardisation</button></td>
+
+                                </tr>
+                                <tr></tr>
+                                <tr>
+                                    <td></td>
+                                    <td><button type="button" class="btn btn-warning">EDW_Data Copier(Instance to Cleansed)</button></td>
+                                    <td></td>
+                                </tr>
+
+                                <tr>
+
+                                </tr>
+                                <tr></tr>
+                                <tr>
+
+                                </tr>
+                            </tbody>
+
+                        </table>
+                    </section>
+                </div>
+            </div>
+        </div>-->
+
+            </div>
+                                <!-- /container-fluid -->
+
+                            </div>
+                            <!-- /#page-wrapper -->
+
+                        </div>
+    <!-- /#wrapper -->
+</body>
+
+</html>

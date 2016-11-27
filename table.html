@@ -1,0 +1,133 @@
+﻿
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="" />
+    <meta name="author" content="" />
+
+    <title>EMIR Dictionary</title>
+
+
+    <link href="css/bootstrap.min.css" rel="stylesheet" />
+    <link href="css/sb-admin.css" rel="stylesheet" />
+    <link href="font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular.min.js"></script>
+    
+
+    <script src="js/angularjsScript.js"></script>
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+</head>
+
+<body ng-app="indexhtml">
+
+    <div id="wrapper" ng-controller="tableController">
+        <!-- Navigation -->
+        <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href=#>EMIR Data Dictionary</a>
+                <a class="navbar-brand" href="Configuration.html">Configuration</a>
+                <a class="navbar-brand" href="table.html">Table Details</a>
+            </div>
+            <!-- <span class="pull-left">
+                                <img class="media-object" src="/Images/henryford.gif" alt=""></span>
+            -->
+            <!-- Sidebar Menu Items - These collapse to the responsive navigation menu on small screens -->
+            <!-- /.navbar-collapse -->
+        </nav>
+
+        <div id="page-wrapper">
+
+            <div class="container-fluid">
+
+                <!-- Page Heading -->
+                <div class="row">
+                    <div class="col-lg-12">
+                        <h1 class="page-header">
+                            {{Heading}}
+                        </h1>
+                        <!-- <ol class="breadcrumb">
+                             <li>
+                                 <i class="fa fa-dashboard"></i> Projects/Data Tables & Views
+                             </li>
+                         </ol>-->
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Projects</label>
+                    <select class="form-control" ng-model="dropdownValue" ng-change="getValue(dropdownValue)">
+                        <option value="">Choose a project</option>
+                        <option ng:repeat="project in projectlist" value="{{project.ID}}">
+                            {{project.SubjectAreaName}}
+                        </option>
+                    </select>
+                </div>
+                <div class="row" ng-hide="dataTable">
+                    <div class="col-lg-6">
+                        <div class="table-responsive">
+                            <table class="table table-hover table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>&nbsp;</th>
+                                        <th ng-repeat="column in cols">{{column}}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr ng-repeat-start="row in rows">
+                                        <td ng-if="row.expanded" ng-click="row.expanded=false"> <a><img ng-src="Images/down1.jpg" /></a></td>
+                                        <td ng-if="!row.expanded" ng-click="row.expanded=true;loadinnertables(row,$index)"> <a><img ng-src="Images/right.jpg" /></a></td>
+                                        <td ng-repeat="column in cols">{{row[column]}}</td>
+                                    </tr>
+
+                                    <tr ng-if="row.expanded" ng-repeat-end="">
+                                        <td colspan="1"></td>
+                                        <td colspan=" 3">
+                                            <table class="table table-hover">
+                                                <thead>
+                                                    <tr>
+                                                        <th ng-repeat="innercolumn in innercols">{{innercolumn}}</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody ng-repeat="innerrow in innerrows[$index]">
+                                                    <tr>
+                                                        <td ng-repeat="innercolumn in innercols">{{innerrow[innercolumn]}}</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+
+            </div>
+            <!-- /container-fluid -->
+
+        </div>
+        <!-- /#page-wrapper -->
+
+    </div>
+    <!-- /#wrapper -->
+</body>
+
+</html>
